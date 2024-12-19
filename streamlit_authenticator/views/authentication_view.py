@@ -15,7 +15,7 @@ import streamlit as st
 
 from ..controllers import AuthenticationController, CookieController
 from .. import params
-from ..utilities import DeprecationError, Helpers, LogoutError, ResetError, UpdateError, Validator
+from ..utilities import DeprecationError, Helpers, LogoutError, ResetError, UpdateError, Validator, LoginError
 
 class Authenticate:
     """
@@ -214,7 +214,10 @@ class Authenticate:
         if not st.session_state['authentication_status']:
             token = self.cookie_controller.get_cookie()
             if token:
-                self.authentication_controller.login(token=token)
+                try:
+                    self.authentication_controller.login(token=token)
+                except LoginError as login_error:
+                    self.cookie_controller.delete_cookie()
             time.sleep(params.PRE_LOGIN_SLEEP_TIME if 'login_sleep_time' not in self.attrs \
                        else self.attrs['login_sleep_time'])
             if not st.session_state['authentication_status']:
